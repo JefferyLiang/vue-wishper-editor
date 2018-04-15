@@ -7,7 +7,7 @@ module.exports = {
     path: path.resolve(__dirname, './dist'),
     publicPath: '/dist/',
     filename: process.env.NODE_ENV === 'production' ? 'wishper-editor.js' : 'build.js',
-    library: 'WishperEditor',
+    library: 'VueWishperEditor',
     libraryTarget: 'umd',
     umdNamedDefine: true
   },
