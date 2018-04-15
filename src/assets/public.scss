@@ -1,0 +1,23 @@
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// color
+$whiteFont: hsla(0,0%,100%,.6);
+$white: rgba(255, 255, 255, .9);
+$mainFont: #303133;
+$font: #606266;
+$secondFont: #909399;
+$lastFont: #C0C4CC;
+
+$deepBlue: #36465d;
+$success: #67C23A;
+$warning: #E6A23C;
+$danger: #F56C6C;
+$info: #909399;
