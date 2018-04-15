@@ -4,7 +4,7 @@
       <div ref="htmlContent" class="content-container">
         <div class="editor-item" v-for="(content, index) in content_arr" :key="index" style="width: 100%;padding: 3px 0px; min-height: 24px;position: relative;">
           <p v-if="content.type === 'text'">{{ content.text }}</p>
-          <div v-if="content.type === 'image'" class="image-container" style="position: relative; width: calc(100% + 40px);margin-left: -25px;" @mouseover="hover_idx = index" @mouseout="hover_idx = -1">
+          <div v-if="content.type === 'image'" class="image-container" style="position: relative; width: calc(100% + 40px);margin-left: -20px;" @mouseover="hover_idx = index" @mouseout="hover_idx = -1">
             <div v-show="hover_idx === index" class="btn flex-column" @click.stop="removeImageItem(index)">
               <w-icon name="times"></w-icon>
             </div>
