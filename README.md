@@ -10,6 +10,10 @@ I like the concise editor, so I build it.
 
 If you want to use this editor and meet some problem, you can come to the project github and write a issues.
 
+## Simple Demo
+
+I will wirte the live demo soon.
+
 ## Installation
 
 use the npm to install this package
