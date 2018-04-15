@@ -15,7 +15,7 @@ If you want to use this editor and meet some problem, you can come to the projec
 use the npm to install this package
 
 ```bash
-$ npm i vue-wishper -S
+$ npm i vue-wishper-editor -S
 ```
 
 download in Github
