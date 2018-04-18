@@ -1,25 +1,38 @@
 <template>
-  <div class="whisper-editor-container flex-column" :style="{ 'font-size': `${fontSize}px`, 'color': fontColor }" @click.stop="editorInputFocusEvent">
+  <div class="wishper-editor-container flex-column">
     <div class="inner-container flex-column">
-      <div ref="htmlContent" class="content-container">
-        <div class="editor-item" v-for="(content, index) in content_arr" :key="index" style="width: 100%;padding: 3px 0px; min-height: 24px;position: relative;">
-          <p v-if="content.type === 'text'">{{ content.text }}</p>
-          <div v-if="content.type === 'image'" class="image-container" style="position: relative; width: calc(100% + 40px);margin-left: -20px;" @mouseover="hover_idx = index" @mouseout="hover_idx = -1">
-            <div v-show="hover_idx === index" class="btn flex-column" @click.stop="removeImageItem(index)">
-              <w-icon name="times"></w-icon>
+      <div class="content-container" :style="{ 'font-size': `${fontSize}px` }">
+        <!-- content begin -->
+        <div class="content-inner"
+        contenteditable="true" 
+        @keyup.delete="deleteKeyUpEvent"
+        @keydown.delete="stopDeleteEvent($event)"
+        @keyup.enter="enterKeyUpEvent"
+        @click="setIconGroupLocation"
+        @keyup.down="directionKeyUpEvent"
+        @keyup.up="directionKeyUpEvent"
+        @keyup.left="directionKeyUpEvent"
+        @keyup.right="directionKeyUpEvent"
+        @input="setIconGroupLocation"
+        @blur="editorBlur">
+          <div ref="contentHTML"
+          class="content"
+          @click.stop="editorClick">
+            <p><br></p>
+          </div>
+          <!-- tool begin -->
+          <div contenteditable="false" v-show="show_icon_group" class="tools icon-btn-group-container flex-row" :style="{ top: `${icon_group_top}px` }">
+            <div class="icon-item" @click.stop="openUploadImageInput">
+              <w-icon name="camera" :scale="`${fontSize / 14}`"></w-icon>
+              <input type="file" ref="uploadImageInput" maxlength="1" accept="image/png, image/jpeg, image/jpg" @change="getTheUploadImage" v-show="false">
             </div>
-            <img :src="content.base64" style="width: 100%">
           </div>
-        </div>
-      </div>
-      <div class="input-container flex-row">
-        <input type="text" ref="editor-input" v-model="editor_input_str" @keyup.enter="inputEnterKeyUp" @keydown.delete="inputDeleteKeyDown" :placeholder="(content_arr.length === 0 && editor_input_str === '') ? placeholder : ''">
-        <div class="insert-btn-group-container flex-row">
-          <div v-show="editor_input_str.length === 0" class="image-btn-container" @click="uploadImage">
-            <w-icon class="icon" name="camera"></w-icon>
-            <input v-show="false" ref="imageUpload" type="file" @change="uploadAndAddToDom">
+          <div class="tools image-close-btn flex-row">
+            <w-icon name="times"></w-icon>
           </div>
+          <!-- end -->
         </div>
+        <!-- content end -->
       </div>
     </div>
   </div>
@@ -59,79 +72,94 @@ export default {
   },
   data () {
     return {
-      editor_input_str: '',
-      is_focus_input: false,
-      content_arr: [],
-      hover_idx: -1
-    }
-  },
-  computed: {
-    content_len () {
-      console.log('in')
-      return this.content_arr
+      icon_group_top: 14,
+      show_icon_group: false,
+      content_len: 1,
+      is_focus: false,
+      focus_item_idx: 0,
+      close_btn_top: 0
     }
   },
   methods: {
-    editorInputFocusEvent () {
-      this.is_focus_input = true
-      this.$refs['editor-input'].focus()
+    deleteKeyUpEvent () {
+      // stop the delete when nothing
+      // if don't stop it, the <p> would be delete.
+      this.content_len = this.getContentChildLength()
     },
-    contentUpdateEvent () {
-      setTimeout(() => {
-        this.$emit('change', this.$refs.htmlContent.innerHTML)
-      }, 0)
+    enterKeyUpEvent () {
+      this.content_len++
+      this.focus_item_idx = this.getFocusEditorItem()
     },
-    inputEnterKeyUp () {
-      if (this.editor_input_str === '' || this.editor_input_str.length === 0) this.pushEmptyToContent()
-      else {
-        this.pushTextToContent(this.editor_input_str)
-        this.editor_input_str = ''
+    directionKeyUpEvent () {
+      this.setIconGroupLocation()
+      this.focus_item_idx = this.getFocusEditorItem()
+    },
+    stopDeleteEvent (ev) {
+      if (this.content_len === 1 && this.show_icon_group) ev.preventDefault()
+    },
+    editorClick () {
+      this.setIconGroupLocation()
+      this.is_focus = true
+      this.focus_item_idx = this.getFocusEditorItem()
+    },
+    editorBlur () {
+      this.is_focus = false
+      this.show_icon_group = false
+    },
+    getFocusEditorItem () {
+      let range = this.getSelectionRange()
+      let { parentNode } = range.commonAncestorContainer
+      for (let idx = 0; idx < parentNode.children.length ; idx++) {
+        let item = parentNode.children[idx]
+        if (item.offsetTop === this.icon_group_top) {
+          return idx
+        }
       }
     },
-    inputDeleteKeyDown () {
-      if (this.content_arr.length === 0) return false
-      if ((this.editor_input_str.length === 0 || this.editor_input_str === '')) {
-        if (this.content_arr[this.content_arr.length - 1].type === 'empty' || this.content_arr[this.content_arr.length - 1].type === 'text') this.backToTheBeforeLine()
-      }
+    openUploadImageInput () {
+      this.$refs.uploadImageInput.click()
     },
-    backToTheBeforeLine () {
-      this.editor_input_str = this.content_arr[this.content_arr.length - 1].text
-      this.content_arr.pop()
-      this.contentUpdateEvent()
-    },
-    pushEmptyToContent () {
-      this.content_arr.push({
-        type: 'empty',
-        text: ''
-      })
-      this.contentUpdateEvent()
-    },
-    pushTextToContent (msg) {
-      this.content_arr.push({
-        type: 'text',
-        text: msg
-      })
-      this.contentUpdateEvent()
-    },
-    uploadImage () {
-      this.$refs.imageUpload.click()
-      this.$refs.imageUpload
-    },
-    uploadAndAddToDom () {
+    getTheUploadImage () {
       let reader = new FileReader()
-      reader.readAsDataURL(this.$refs.imageUpload.files[0])
+      reader.readAsDataURL(this.$refs.uploadImageInput.files[0])
       reader.onload = (res) => {
-        this.content_arr.push({
-          type: 'image',
-          base64: res.srcElement.result
-        })
-        this.contentUpdateEvent()
+        this.insertImageToDom(res.srcElement.result, this.focus_item_idx)
       }
     },
-    removeImageItem (idx) {
-      if (this.content_arr[idx].type !== 'image') return false
-      this.content_arr.splice(idx, 1)
-      this.contentUpdateEvent()
+    insertImageToDom (src, idx) {
+      let image = document.createElement('img')
+      image.src = src
+      image.style.width = 'calc(100% + 40px)'
+      image.style.marginLeft = '-20px'
+      let dom = this.$refs.contentHTML.childNodes[idx]
+      dom.parentNode.insertBefore(image, dom)
+      setTimeout(() => {
+        // add image  hover event
+        image.addEventListener('mouseover', () => {
+          console.log(image.offsetTop)
+        })
+        this.setIconGroupLocation()
+        let range = this.getSelectionRange()
+        range.setStart(dom, 0)
+      })
+    },
+    getSelectionRange () {
+      let selection = window.getSelection()
+      return selection.getRangeAt(0)
+    },
+    getContentChildLength () {
+      let p_dom_item_total = 0
+      let parent = this.$refs.contentHTML
+      for (let item of parent.children) {
+        if (item.nodeName === 'P') p_dom_item_total++;
+      }
+      return p_dom_item_total
+    },
+    setIconGroupLocation () {
+      let range = this.getSelectionRange()
+      // update the icon gourp location
+      this.icon_group_top = range.commonAncestorContainer.offsetTop
+      this.show_icon_group = (range.commonAncestorContainer.textContent === '' ? true : false)
     }
   }
 }
@@ -139,53 +167,43 @@ export default {
 
 <style lang="scss" scoped>
 @import '../assets/public.scss';
-.whisper-editor-container {
+.wishper-editor-container{
   width: 100%;
-  min-height: 120px;
+}
+.content-container{
+  text-align: left;
   position: relative;
-  .inner-container {
-    width: 100%;
-    .content-container {
-      width: 100%;
-      .editor-item {
-        > p {
-          margin-top: 0px!important;
-          margin-bottom: 5px;
-          text-align: left;
-        }
-        .image-container {
-          .btn {
-            z-index: 10;
-            position: absolute;
-            top: -10px;
-            left: 90%;
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            background-color: $danger;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-          }
-        }
-      }
+  .content-inner {
+    &:focus {
+      outline: none;
+    }
+    .content {
+      padding: 0px 20px;
     }
   }
 }
-input {
-  border: none;
-  width: 100%;
-  &:focus {
-    outline: none;
+.icon-btn-group-container{
+  position: absolute;
+  right: 20px;
+  justify-content: center;
+  align-items: center;
+  .icon-item{
+    cursor: pointer;
+    margin: {
+      left: 5px;
+      right: 5px;
+    }
   }
 }
-.icon {
-  color: $font;
+.image-close-btn{
+  position: absolute;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  background-color: $danger;
+  border-radius: 50%;
   cursor: pointer;
-  transition: color .3s;
-  &:hover {
-    color: $mainFont;
-
-  }
+  right: 30px;
 }
 </style>
