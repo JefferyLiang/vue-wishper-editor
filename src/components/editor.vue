@@ -27,9 +27,9 @@
               <input type="file" ref="uploadImageInput" maxlength="1" accept="image/png, image/jpeg, image/jpg" @change="getTheUploadImage" v-show="false">
             </div>
           </div>
-          <div class="tools image-close-btn flex-row">
+          <!-- <div class="tools image-close-btn flex-row">
             <w-icon name="times"></w-icon>
-          </div>
+          </div> -->
           <!-- end -->
         </div>
         <!-- content end -->
@@ -76,8 +76,8 @@ export default {
       show_icon_group: false,
       content_len: 1,
       is_focus: false,
-      focus_item_idx: 0,
-      close_btn_top: 0
+      focus_item_idx: 0
+      // close_btn_top: 0
     }
   },
   methods: {
@@ -127,17 +127,20 @@ export default {
       }
     },
     insertImageToDom (src, idx) {
+      let p = document.createElement('p')
+      p.style.margin = 0
       let image = document.createElement('img')
       image.src = src
       image.style.width = 'calc(100% + 40px)'
       image.style.marginLeft = '-20px'
       let dom = this.$refs.contentHTML.childNodes[idx]
-      dom.parentNode.insertBefore(image, dom)
+      p.appendChild(image)
+      dom.parentNode.insertBefore(p, dom)
       setTimeout(() => {
         // add image  hover event
-        image.addEventListener('mouseover', () => {
-          console.log(image.offsetTop)
-        })
+        // image.addEventListener('mouseover', () => {
+        //   console.log(image.offsetTop)
+        // })
         this.setIconGroupLocation()
         let range = this.getSelectionRange()
         range.setStart(dom, 0)
