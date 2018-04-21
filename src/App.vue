@@ -3,7 +3,7 @@
     <!-- <img src="./assets/logo.png">
     <h1>{{ msg }}</h1>
     <h2>Essential Links</h2> -->
-    <w-editor></w-editor>
+    <w-editor placeholder="请输入内容"></w-editor>
     <!-- <ul>
       <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
       <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>

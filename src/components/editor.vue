@@ -4,7 +4,7 @@
       <div class="content-container" :style="{ 'font-size': `${fontSize}px` }">
         <!-- content begin -->
         <div class="content-inner"
-        contenteditable="true" 
+        contenteditable="true"
         @keyup.delete="deleteKeyUpEvent"
         @keydown.delete="stopDeleteEvent($event)"
         @keyup.enter="enterKeyUpEvent"
@@ -13,7 +13,7 @@
         @keyup.up="directionKeyUpEvent"
         @keyup.left="directionKeyUpEvent"
         @keyup.right="directionKeyUpEvent"
-        @input="setIconGroupLocation"
+        @input="inputEvent"
         @blur="editorBlur">
           <div ref="contentHTML"
           class="content"
@@ -21,7 +21,10 @@
             <p><br></p>
           </div>
           <!-- tool begin -->
-          <div contenteditable="false" v-show="show_icon_group" class="tools icon-btn-group-container flex-row" :style="{ top: `${icon_group_top}px` }">
+          <div contenteditable="false"
+            v-show="show_icon_group"
+            class="tools icon-btn-group-container flex-row"
+            :style="{ top: `${icon_group_top}px` }">
             <div class="icon-item" @click.stop="openUploadImageInput">
               <w-icon name="camera" :scale="`${fontSize / 14}`"></w-icon>
               <input type="file" ref="uploadImageInput" maxlength="1" accept="image/png, image/jpeg, image/jpg" @change="getTheUploadImage" v-show="false">
@@ -30,6 +33,12 @@
           <!-- <div class="tools image-close-btn flex-row">
             <w-icon name="times"></w-icon>
           </div> -->
+          <div class="placeholder-container"
+            contenteditable="false"
+            :style="{ 'font-size': `${fontSize}px` }"
+            v-show="show_placeholder">
+            {{ placeholder }}
+          </div>
           <!-- end -->
         </div>
         <!-- content end -->
@@ -76,8 +85,8 @@ export default {
       show_icon_group: false,
       content_len: 1,
       is_focus: false,
-      focus_item_idx: 0
-      // close_btn_top: 0
+      focus_item_idx: 0,
+      show_placeholder: true
     }
   },
   methods: {
@@ -90,12 +99,21 @@ export default {
       this.content_len++
       this.focus_item_idx = this.getFocusEditorItem()
     },
+    inputEvent () {
+      this.$refs.contentHTML.children[0].textContent === '' ?
+        this.show_placeholder = true :
+        this.show_placeholder = false
+      this.setIconGroupLocation()
+    },
     directionKeyUpEvent () {
       this.setIconGroupLocation()
       this.focus_item_idx = this.getFocusEditorItem()
     },
     stopDeleteEvent (ev) {
-      if (this.content_len === 1 && this.show_icon_group) ev.preventDefault()
+      if (this.content_len === 1 &&
+        this.show_icon_group &&
+        this.$refs.contentHTML.children[0].children[0].nodeName === 'BR'
+      ) ev.preventDefault()
     },
     editorClick () {
       this.setIconGroupLocation()
@@ -137,10 +155,6 @@ export default {
       p.appendChild(image)
       dom.parentNode.insertBefore(p, dom)
       setTimeout(() => {
-        // add image  hover event
-        // image.addEventListener('mouseover', () => {
-        //   console.log(image.offsetTop)
-        // })
         this.setIconGroupLocation()
         let range = this.getSelectionRange()
         range.setStart(dom, 0)
@@ -208,5 +222,11 @@ export default {
   border-radius: 50%;
   cursor: pointer;
   right: 30px;
+}
+.placeholder-container {
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  color: #555;
 }
 </style>
